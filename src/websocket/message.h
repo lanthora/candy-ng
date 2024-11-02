@@ -1,34 +1,119 @@
 // SPDX-License-Identifier: MIT
-#ifndef CANDY_WEBSOCKET_COMMON_H
-#define CANDY_WEBSOCKET_COMMON_H
+#ifndef CANDY_WEBSOCKET_MESSAGE_H
+#define CANDY_WEBSOCKET_MESSAGE_H
 
+#include "core/net.h"
+#include "utility/type.h"
 #include <Poco/Net/WebSocket.h>
-#include <memory>
-#include <string>
+#include <openssl/sha.h>
 
 namespace Candy {
 
-enum class WebSocketMessageType { Message, Open, Close, Error };
+namespace WsMsgKind {
+constexpr uint8 AUTH = 0;
+constexpr uint8 FORWARD = 1;
+constexpr uint8 EXPTTUN = 2;
+constexpr uint8 UDP4CONN = 3;
+constexpr uint8 VMAC = 4;
+constexpr uint8 DISCOVERY = 5;
+constexpr uint8 ROUTE = 6;
+constexpr uint8 GENERAL = 255;
+} // namespace WsMsgKind
 
-class WebSocketConn {
-public:
-    // 重载小于号,用于作为 std::map 的 key
-    bool operator<(const WebSocketConn &other) const;
+namespace GeSubType {
+constexpr uint8 LOCALUDP4CONN = 0;
+}
 
-    // 重载等于号,用于判断是否是相同的连接
-    bool operator==(const WebSocketConn &other) const;
+namespace WsMsg {
 
-    std::weak_ptr<Poco::Net::WebSocket> ws;
+struct __attribute__((packed)) Auth {
+    uint8 type;
+    IP4 ip;
+    int64 timestamp;
+    uint8 hash[SHA256_DIGEST_LENGTH];
+
+    Auth(IP4 ip);
+    void updateHash(const std::string &password);
+    bool check(const std::string &password);
 };
 
-// 消息会被放到消息队列里,从消息队列里取出来的时候至少要包含消息的类型和来源,
-// 对于客户端,消息的来源只能是服务端,所以客户端的消息队列可以不填充 conn 字段
-struct WebSocketMessage {
-    WebSocketMessageType type;
-    std::string buffer;
-    WebSocketConn conn;
+struct __attribute__((packed)) Forward {
+    uint8 type;
+    IP4Header iph;
+
+    Forward();
 };
 
+struct __attribute__((packed)) ExptTun {
+    uint8 type;
+    int64 timestamp;
+    char cidr[32];
+    uint8 hash[SHA256_DIGEST_LENGTH];
+
+    ExptTun(const std::string &cidr);
+    void updateHash(const std::string &password);
+    bool check(const std::string &password);
+};
+
+struct __attribute__((packed)) Udp4Conn {
+    uint8 type;
+    IP4 src;
+    IP4 dst;
+    IP4 ip;
+    uint16 port;
+
+    Udp4Conn();
+};
+
+struct __attribute__((packed)) VMac {
+    uint8 type;
+    uint8 vmac[16];
+    int64 timestamp;
+    uint8 hash[SHA256_DIGEST_LENGTH];
+
+    VMac(const std::string &vmac);
+    void updateHash(const std::string &password);
+    bool check(const std::string &password);
+};
+
+struct __attribute__((packed)) Discovery {
+    uint8 type;
+    IP4 src;
+    IP4 dst;
+
+    Discovery();
+};
+
+struct __attribute__((packed)) SysRouteItem {
+    IP4 dst;
+    IP4 mask;
+    IP4 nexthop;
+};
+
+struct __attribute__((packed)) SysRoute {
+    uint8 type;
+    uint8 size;
+    uint16 reserved;
+    SysRouteItem rtTable[0];
+};
+
+struct __attribute__((packed)) General {
+    uint8 type;
+    uint8 subtype;
+    uint16 extra;
+    IP4 src;
+    IP4 dst;
+
+    General();
+};
+
+struct __attribute__((packed)) LocalUDP4 {
+    General ge;
+    uint32 ip;
+    uint16 port;
+};
+
+} // namespace WsMsg
 } // namespace Candy
 
 #endif

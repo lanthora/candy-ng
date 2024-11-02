@@ -2,7 +2,7 @@
 #include <Poco/Platform.h>
 #if POCO_OS == POCO_OS_LINUX
 
-#include "common/net.h"
+#include "core/net.h"
 #include "tun/tun.h"
 #include <arpa/inet.h>
 #include <fcntl.h>

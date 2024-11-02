@@ -2,8 +2,8 @@
 #include <Poco/Platform.h>
 #if POCO_OS == POCO_OS_WINDOWS_NT
 
-#include "common/net.h"
 #include "tun/tun.h"
+#include "utility/net.h"
 #include <codecvt>
 #include <memory>
 #include <openssl/sha.h>

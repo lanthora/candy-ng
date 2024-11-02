@@ -2,8 +2,8 @@
 #include <Poco/Platform.h>
 #if POCO_OS == POCO_OS_MAC_OS_X
 
-#include "common/net.h"
 #include "tun/tun.h"
+#include "utility/net.h"
 #include <errno.h>
 #include <fcntl.h>
 #include <memory>
@@ -254,7 +254,7 @@ private:
     int timeout;
     int tunFd;
 
-    uint8_t packetinfo[4] = {0x00, 0x00, 0x00, 0x02};
+    u8 packetinfo[4] = {0x00, 0x00, 0x00, 0x02};
 };
 
 } // namespace

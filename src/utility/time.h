@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
-#ifndef CANDY_COMMON_TIME_H
-#define CANDY_COMMON_TIME_H
+#ifndef CANDY_UTILITY_TIME_H
+#define CANDY_UTILITY_TIME_H
 
-#include <cstdint>
+#include "utility/type.h"
 #include <string>
 
 namespace Candy {
@@ -10,8 +10,8 @@ namespace Candy {
 extern bool useSystemTime;
 extern std::string ntpServer;
 
-int64_t unixTime();
-int64_t bootTime();
+int64 unixTime();
+int64 bootTime();
 
 } // namespace Candy
 

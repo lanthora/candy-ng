@@ -1,8 +1,13 @@
-#include "common/net.h"
+#include "core/net.h"
 #include <cstring>
 #include <exception>
 
 namespace Candy {
+
+IP4::IP4(const std::string &ip) {
+    fromString(ip);
+}
+
 IP4 IP4::operator=(const std::string &ip) {
     fromString(ip);
     return *this;
@@ -25,6 +30,21 @@ IP4 IP4::operator|(IP4 another) const {
     return another;
 }
 
+IP4 IP4::operator^(IP4 another) const {
+    for (int i = 0; i < raw.size(); ++i) {
+        another.raw[i] ^= raw[i];
+    }
+    return another;
+}
+
+IP4 IP4::operator~() const {
+    IP4 retval;
+    for (int i = 0; i < raw.size(); ++i) {
+        retval.raw[i] |= ~raw[i];
+    }
+    return retval;
+}
+
 bool IP4::operator==(IP4 another) const {
     return raw == another.raw;
 }
@@ -34,6 +54,13 @@ IP4 IP4::operator&(IP4 another) const {
         another.raw[i] &= raw[i];
     }
     return another;
+}
+
+IP4 IP4::next() const {
+    IP4 ip;
+    uint32 t = hton(ntoh(uint32(*this)) + 1);
+    std::memcpy(&ip, &t, sizeof(ip));
+    return ip;
 }
 
 int IP4::fromString(const std::string &ip) {
@@ -63,22 +90,53 @@ int IP4::toPrefix() {
     return i;
 }
 
+bool IP4::empty() const {
+    return raw[0] == 0 && raw[1] == 0 && raw[2] == 0 && raw[3] == 0;
+}
+
+bool IP4Header::isIPv4() {
+    return true;
+}
+
+bool IP4Header::isIPIP() {
+    return false;
+}
+
 Address::Address() {}
 
 Address::Address(const std::string &cidr) {
     fromCidr(cidr);
 }
 
-IP4 Address::Host() const {
+IP4 &Address::Host() {
     return this->host;
 }
 
-IP4 Address::Mask() const {
+IP4 &Address::Mask() {
     return this->mask;
 }
 
-IP4 Address::Net() const {
-    return this->host & this->mask;
+IP4 Address::Net() {
+    return Host() & Mask();
+}
+
+Address Address::Next() {
+    Address next;
+    next.mask = this->mask;
+    next.host = (Net() | (~Mask() & this->host.next()));
+    return next;
+}
+
+bool Address::isValid() {
+    // 主机号全为 0
+    if ((~mask & host) == 0) {
+        return false;
+    }
+    // 主机号全为 1
+    if (~(mask | host) == 0) {
+        return false;
+    }
+    return true;
 }
 
 int Address::fromCidr(const std::string &cidr) {
@@ -87,7 +145,7 @@ int Address::fromCidr(const std::string &cidr) {
         host.fromString(cidr.substr(0UL, pos));
         mask.fromPrefix(std::stoi(cidr.substr(pos + 1)));
     } catch (std::exception &e) {
-        spdlog::debug("parse cidr failed: {}", e.what());
+        spdlog::warn("address parse cidr failed: {}: {}", cidr, e.what());
         return -1;
     }
     return 0;
@@ -95,11 +153,6 @@ int Address::fromCidr(const std::string &cidr) {
 
 std::string Address::toCidr() {
     return host.toString() + "/" + std::to_string(mask.toPrefix());
-}
-
-bool Address::checkCidr(const std::string &cidr) {
-    // TODO: 检查 CIDR 格式是否合法
-    return true;
 }
 
 } // namespace Candy
