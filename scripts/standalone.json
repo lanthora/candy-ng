@@ -1,0 +1,60 @@
+{
+    "include": [
+        {
+            "os": "linux",
+            "arch": "aarch64"
+        },
+        {
+            "os": "linux",
+            "arch": "arm"
+        },
+        {
+            "os": "linux",
+            "arch": "armhf"
+        },
+        {
+            "os": "linux",
+            "arch": "loongarch64"
+        },
+        {
+            "os": "linux",
+            "arch": "mips"
+        },
+        {
+            "os": "linux",
+            "arch": "mipssf"
+        },
+        {
+            "os": "linux",
+            "arch": "mipsel"
+        },
+        {
+            "os": "linux",
+            "arch": "mipselsf"
+        },
+        {
+            "os": "linux",
+            "arch": "mips64"
+        },
+        {
+            "os": "linux",
+            "arch": "mips64el"
+        },
+        {
+            "os": "linux",
+            "arch": "riscv32"
+        },
+        {
+            "os": "linux",
+            "arch": "riscv64"
+        },
+        {
+            "os": "linux",
+            "arch": "x86_64"
+        },
+        {
+            "os": "linux",
+            "arch": "s390x"
+        }
+    ]
+}

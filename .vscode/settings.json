@@ -1,0 +1,12 @@
+{
+  "editor.detectIndentation": false,
+  "editor.tabSize": 4,
+  "editor.formatOnSave": true,
+  "editor.insertSpaces": true,
+  "files.insertFinalNewline": true,
+  "json.format.enable": true,
+  "cmake.debugConfig": {
+    "args": ["-c", "candy.cfg"]
+  },
+  "editor.inlayHints.enabled": "off"
+}
