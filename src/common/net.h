@@ -26,6 +26,7 @@ public:
     IP4 operator|(IP4 another) const;
     bool operator==(IP4 another) const;
     operator std::string() const;
+    operator uint32_t() const;
     int fromString(const std::string &ip);
     std::string toString() const;
     int fromPrefix(int prefix);

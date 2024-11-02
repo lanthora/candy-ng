@@ -1,4 +1,5 @@
 #include "common/net.h"
+#include <cstring>
 #include <exception>
 
 namespace Candy {
@@ -11,31 +12,37 @@ IP4::operator std::string() const {
     return toString();
 }
 
+IP4::operator uint32_t() const {
+    uint32_t val = 0;
+    std::memcpy(&val, raw.data(), sizeof(val));
+    return val;
+}
+
 IP4 IP4::operator|(IP4 another) const {
-    for (int i = 0; i < this->raw.size(); ++i) {
-        another.raw[i] |= this->raw[i];
+    for (int i = 0; i < raw.size(); ++i) {
+        another.raw[i] |= raw[i];
     }
     return another;
 }
 
 bool IP4::operator==(IP4 another) const {
-    return this->raw == another.raw;
+    return raw == another.raw;
 }
 
 IP4 IP4::operator&(IP4 another) const {
-    for (int i = 0; i < this->raw.size(); ++i) {
-        another.raw[i] &= this->raw[i];
+    for (int i = 0; i < raw.size(); ++i) {
+        another.raw[i] &= raw[i];
     }
     return another;
 }
 
 int IP4::fromString(const std::string &ip) {
-    this->raw = Poco::Net::IPAddress(ip).toV4Bytes();
+    raw = Poco::Net::IPAddress(ip).toV4Bytes();
     return 0;
 }
 
 std::string IP4::toString() const {
-    return Poco::Net::IPAddress(this->raw.data(), sizeof(this->raw)).toString();
+    return Poco::Net::IPAddress(raw.data(), sizeof(raw)).toString();
 }
 
 int IP4::fromPrefix(int prefix) {
