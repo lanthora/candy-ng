@@ -18,15 +18,7 @@ int Tun::setAddress(const std::string &cidr) {
     return -1;
 }
 
-IP4 Tun::getIP() {
-    return IP4();
-}
-
 int Tun::setMTU(int mtu) {
-    return -1;
-}
-
-int Tun::setTimeout(int timeout) {
     return -1;
 }
 

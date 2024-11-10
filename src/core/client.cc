@@ -14,9 +14,6 @@ Msg MsgQueue::read() {
 void MsgQueue::write(Msg msg) {
     {
         std::unique_lock lock(this->msgMutex);
-        while (msg.kind == MsgKind::SHUTDOWN && !msgQueue.empty()) {
-            msgQueue.pop();
-        }
         msgQueue.push(std::move(msg));
     }
     msgCondition.notify_one();
@@ -36,7 +33,7 @@ void Client::setWebSocket(const std::string &uri) {
 }
 
 void Client::setTunAddress(const std::string &cidr) {
-    tun.setAddress(cidr);
+    ws.setAddress(cidr);
 }
 
 void Client::setExptTunAddress(const std::string &cidr) {
@@ -56,7 +53,7 @@ void Client::setDiscoveryInterval(int interval) {
 }
 
 void Client::setRouteCost(int cost) {
-    peer.setRouteCost(cost);
+    peer.setForwardCost(cost);
 }
 
 void Client::setPort(int port) {
@@ -72,7 +69,9 @@ void Client::setMtu(int mtu) {
 }
 
 std::string Client::tunAddress() {
-    return tun.getIP().toString();
+    // TODO: 获取虚拟网卡地址
+    // 从 TUN 模块取? 还是保存 Auth 使用的地址?
+    return "";
 };
 
 int Client::run() {

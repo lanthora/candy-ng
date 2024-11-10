@@ -16,7 +16,7 @@ int Peer::setDiscoveryInterval(int interval) {
     return 0;
 }
 
-int Peer::setRouteCost(int cost) {
+int Peer::setForwardCost(int cost) {
     return 0;
 }
 
@@ -30,11 +30,12 @@ int Peer::setLocalhost(std::string ip) {
 
 int Peer::run(Client *client) {
     this->client = client;
+    this->running = true;
     return 0;
 }
 
 int Peer::shutdown() {
-    this->client->peerMsgQueue.write(Msg(MsgKind::SHUTDOWN));
+    this->running = false;
     return 0;
 }
 

@@ -106,18 +106,13 @@ public:
         return this->ip;
     }
 
-    int setPrefix(IP4 prefix) {
+    int setPrefix(uint32_t prefix) {
         this->prefix = prefix;
         return 0;
     }
 
     int setMTU(int mtu) {
         this->mtu = mtu;
-        return 0;
-    }
-
-    int setTimeout(int timeout) {
-        this->timeout = timeout;
         return 0;
     }
 
@@ -143,7 +138,7 @@ public:
         InitializeUnicastIpAddressEntry(&AddressRow);
         WintunGetAdapterLUID(this->adapter, &AddressRow.InterfaceLuid);
         AddressRow.Address.Ipv4.sin_family = AF_INET;
-        AddressRow.Address.Ipv4.sin_addr.S_un.S_addr = Candy::Address::hostToNet(this->ip);
+        AddressRow.Address.Ipv4.sin_addr.S_un.S_addr = this->ip;
         AddressRow.OnLinkPrefixLength = this->prefix;
         AddressRow.DadState = IpDadStatePreferred;
         Error = CreateUnicastIpAddressEntry(&AddressRow);
@@ -203,7 +198,7 @@ public:
             return size;
         }
         if (GetLastError() == ERROR_NO_MORE_ITEMS) {
-            WaitForSingleObject(WintunGetReadWaitEvent(this->session), this->timeout * 1000);
+            WaitForSingleObject(WintunGetReadWaitEvent(this->session), 1000);
             return 0;
         }
         spdlog::error("wintun read failed: {}", GetLastError());
@@ -227,9 +222,9 @@ public:
     int setSysRtTable(IP4 dst, IP4 mask, IP4 nexthop) {
         MIB_IPFORWARDROW route;
 
-        route.dwForwardDest = Candy::Address::hostToNet(dst);
-        route.dwForwardMask = Candy::Address::hostToNet(mask);
-        route.dwForwardNextHop = Candy::Address::hostToNet(nexthop);
+        route.dwForwardDest = dst;
+        route.dwForwardMask = mask;
+        route.dwForwardNextHop = nexthop;
         route.dwForwardIfIndex = this->ifindex;
 
         route.dwForwardProto = MIB_IPPROTO_NETMGMT;
@@ -255,7 +250,7 @@ public:
 private:
     std::string name;
     IP4 ip;
-    IP4 prefix;
+    uint32_t prefix;
     int mtu;
     int timeout;
     NET_IFINDEX ifindex;
@@ -287,15 +282,15 @@ int Tun::setAddress(const std::string &cidr) {
     std::shared_ptr<WindowsTun> tun;
     Address address;
 
-    if (address.cidrUpdate(cidr)) {
+    if (address.fromCidr(cidr)) {
         return -1;
     }
-    spdlog::info("client address: {}", address.getCidr());
+    spdlog::info("client address: {}", address.toCidr());
     tun = std::any_cast<std::shared_ptr<WindowsTun>>(this->impl);
-    if (tun->setIP(address.getIp())) {
+    if (tun->setIP(address.Host())) {
         return -1;
     }
-    if (tun->setPrefix(address.getPrefix())) {
+    if (tun->setPrefix(address.Mask().toPrefix())) {
         return -1;
     }
     return 0;
@@ -311,15 +306,6 @@ int Tun::setMTU(int mtu) {
     std::shared_ptr<WindowsTun> tun;
     tun = std::any_cast<std::shared_ptr<WindowsTun>>(this->impl);
     if (tun->setMTU(mtu)) {
-        return -1;
-    }
-    return 0;
-}
-
-int Tun::setTimeout(int timeout) {
-    std::shared_ptr<WindowsTun> tun;
-    tun = std::any_cast<std::shared_ptr<WindowsTun>>(this->impl);
-    if (tun->setTimeout(timeout)) {
         return -1;
     }
     return 0;

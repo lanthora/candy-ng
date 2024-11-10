@@ -2,6 +2,7 @@
 #ifndef CANDY_TUN_TUN_H
 #define CANDY_TUN_TUN_H
 
+#include "core/message.h"
 #include "core/net.h"
 #include <any>
 #include <string>
@@ -16,13 +17,27 @@ public:
     ~Tun();
 
     int setName(const std::string &name);
-    int setAddress(const std::string &cidr);
-    IP4 getIP();
     int setMTU(int mtu);
-    int setTimeout(int timeout);
 
     int run(Client *client);
     int shutdown();
+
+private:
+    IP4 getIP();
+    int setAddress(const std::string &cidr);
+
+    // 处理来自 TUN 设备的数据
+    void handleTunDevice();
+
+    // 处理来自消息队列的数据
+    void handleTunQueue();
+    void handlePacket(Msg msg);
+    void handleTunAddr(Msg msg);
+
+    bool running;
+    std::string tunAddress;
+    std::thread tunThread;
+    std::thread msgThread;
 
 private:
     int up();

@@ -13,12 +13,15 @@ public:
     int setPassword(const std::string &password);
     int setStun(const std::string &stun);
     int setDiscoveryInterval(int interval);
-    int setRouteCost(int cost);
+    int setForwardCost(int cost);
     int setPort(int port);
     int setLocalhost(std::string ip);
 
     int run(Client *client);
     int shutdown();
+
+private:
+    bool running;
 
 private:
     Client *client;

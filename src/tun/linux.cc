@@ -45,11 +45,6 @@ public:
         return 0;
     }
 
-    int setTimeout(int timeout) {
-        this->timeout = timeout;
-        return 0;
-    }
-
     // 配置网卡,设置路由
     int up() {
         this->tunFd = open("/dev/net/tun", O_RDWR);
@@ -164,7 +159,7 @@ public:
         }
 
         if (errno == EAGAIN || errno == EWOULDBLOCK) {
-            struct timeval timeout = {.tv_sec = this->timeout};
+            struct timeval timeout = {.tv_sec = 1};
             fd_set set;
 
             FD_ZERO(&set);
@@ -257,6 +252,7 @@ int Tun::setAddress(const std::string &cidr) {
     if (tun->setMask(address.Mask())) {
         return -1;
     }
+    this->tunAddress = cidr;
     return 0;
 }
 
@@ -270,15 +266,6 @@ int Tun::setMTU(int mtu) {
     std::shared_ptr<LinuxTun> tun;
     tun = std::any_cast<std::shared_ptr<LinuxTun>>(this->impl);
     if (tun->setMTU(mtu)) {
-        return -1;
-    }
-    return 0;
-}
-
-int Tun::setTimeout(int timeout) {
-    std::shared_ptr<LinuxTun> tun;
-    tun = std::any_cast<std::shared_ptr<LinuxTun>>(this->impl);
-    if (tun->setTimeout(timeout)) {
         return -1;
     }
     return 0;

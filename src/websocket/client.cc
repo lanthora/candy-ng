@@ -29,17 +29,23 @@ int WebSocketClient::setExptTunAddress(const std::string &cidr) {
     return 0;
 }
 
+int WebSocketClient::setAddress(const std::string &cidr) {
+    this->tunCidr = cidr;
+    return 0;
+}
+
 int WebSocketClient::setVirtualMac(const std::string &vmac) {
     return 0;
 }
 
 int WebSocketClient::run(Client *client) {
     this->client = client;
+    this->running = true;
     return 0;
 }
 
 int WebSocketClient::shutdown() {
-    this->client->wsMsgQueue.write(Msg(MsgKind::SHUTDOWN));
+    this->running = false;
     return 0;
 }
 

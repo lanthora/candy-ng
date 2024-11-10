@@ -15,10 +15,14 @@ public:
     int setPassword(const std::string &password);
     int setWsServerUri(const std::string &uri);
     int setExptTunAddress(const std::string &cidr);
+    int setAddress(const std::string &cidr);
     int setVirtualMac(const std::string &vmac);
 
     int run(Client *client);
     int shutdown();
+
+private:
+    bool running;
 
 private:
     int connect();
@@ -31,6 +35,7 @@ private:
 private:
     std::string wsServerUri;
     std::string exptTunCidr;
+    std::string tunCidr;
     std::string password;
     Client *client;
 };

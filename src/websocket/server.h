@@ -64,7 +64,8 @@ private:
     std::unordered_map<IP4, WsCtx *> ipCtxMap;
     // 操作 map 时需要加锁,以确保操作时指针有效
     std::shared_mutex ipCtxMutex;
-    std::atomic<bool> running;
+
+    bool running;
 
 private:
     // 开始监听,新的请求将调用 handleWebsocket

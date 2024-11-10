@@ -10,9 +10,8 @@ namespace Candy {
 
 /* 内部模块之间通过消息通信.消息类型在这里定义 */
 enum class MsgKind {
-    SHUTDOWN, // 通知退出消息队列监听
-    PACKET,   // 模块间转发 IP 报文
-    TUNIP,    // 通知 TUN 模块设置 IP
+    PACKET,  // 模块间转发 IP 报文
+    TUNADDR, // 通知 TUN 模块设置地址
 };
 
 /* 内部模块间的消息只包含类型和可选的数据,模块之间传输信息只允许移动,不允许复制 */
@@ -25,7 +24,7 @@ struct Msg {
     Msg &operator=(const Msg &) = delete;
 
     // 默认构造,移动构造和移动赋值
-    Msg(MsgKind kind = MsgKind::SHUTDOWN);
+    Msg(MsgKind kind = MsgKind::PACKET);
     Msg(Msg &&packet);
     Msg &operator=(Msg &&packet);
 };
