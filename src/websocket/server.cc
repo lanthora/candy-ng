@@ -440,7 +440,7 @@ void WebSocketServer::updateSysRoute(WsCtx &ctx) {
 
     for (auto rt : this->routes) {
         if ((rt.dev.Mask() & ctx.ip) == rt.dev.Host()) {
-            WsMsg::SysRouteItem item;
+            SysRouteEntry item;
             item.dst = rt.dst.Net();
             item.mask = rt.dst.Mask();
             item.nexthop = rt.next;

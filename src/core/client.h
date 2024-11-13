@@ -14,9 +14,9 @@ namespace Candy {
 /* 各模块之间通过消息队列通信 */
 class MsgQueue {
 public:
-    // 阻塞读,当收到 MsgKind::SHUTDOWN 后执行退出流程,不能再读
+    // 阻塞读
     Msg read();
-    // 向队列中写入消息,在进程退出时模块清空自身的消息队列并写入 SHUTDOWN
+    // 向队列中写入消息
     void write(Msg msg);
 
 private:

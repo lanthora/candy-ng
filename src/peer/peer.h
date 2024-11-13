@@ -2,7 +2,9 @@
 #ifndef CANDY_PEER_PEER_H
 #define CANDY_PEER_PEER_H
 
+#include "core/message.h"
 #include <string>
+#include <thread>
 
 namespace Candy {
 
@@ -21,7 +23,12 @@ public:
     int shutdown();
 
 private:
+    // 处理来自消息队列的数据
+    void handlePeerQueue();
+    void handlePacket(Msg msg);
+
     bool running;
+    std::thread msgThread;
 
 private:
     Client *client;

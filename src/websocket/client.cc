@@ -1,12 +1,15 @@
 // SPDX-License-Identifier: MIT
 #include "websocket/client.h"
 #include "core/client.h"
+#include "core/message.h"
 #include "utility/time.h"
+#include "websocket/message.h"
 #include <Poco/Exception.h>
 #include <Poco/Net/HTTPMessage.h>
 #include <Poco/Net/HTTPRequest.h>
 #include <Poco/Net/HTTPResponse.h>
 #include <Poco/Net/HTTPSClientSession.h>
+#include <Poco/Net/SocketDefs.h>
 #include <Poco/Timespan.h>
 #include <Poco/URI.h>
 #include <memory>
@@ -41,12 +44,39 @@ int WebSocketClient::setVirtualMac(const std::string &vmac) {
 int WebSocketClient::run(Client *client) {
     this->client = client;
     this->running = true;
+    this->msgThread = std::thread([&] {
+        while (this->running) {
+            handleWsQueue();
+        }
+    });
     return 0;
 }
 
 int WebSocketClient::shutdown() {
     this->running = false;
+    if (this->msgThread.joinable()) {
+        this->msgThread.join();
+    }
     return 0;
+}
+
+void WebSocketClient::handleWsQueue() {
+    Msg msg = this->client->wsMsgQueue.read();
+    switch (msg.kind) {
+    case MsgKind::NONE:
+        break;
+    case MsgKind::PACKET:
+        handlePacket(std::move(msg));
+        break;
+    default:
+        spdlog::warn("unexcepted websocket message type: {}", static_cast<int>(msg.kind));
+        break;
+    }
+}
+
+void WebSocketClient::handlePacket(Msg msg) {
+    msg.data.insert(0, 1, WsMsgKind::FORWARD);
+    this->ws->sendFrame(msg.data.data(), msg.data.size(), Poco::Net::WebSocket::FRAME_BINARY);
 }
 
 int WebSocketClient::connect() {

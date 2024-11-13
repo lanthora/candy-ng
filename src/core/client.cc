@@ -1,10 +1,13 @@
 #include "core/client.h"
+#include "core/message.h"
 
 namespace Candy {
 
 Msg MsgQueue::read() {
     std::unique_lock lock(msgMutex);
-    msgCondition.wait(lock, [this] { return !msgQueue.empty(); });
+    if (!msgCondition.wait_for(lock, std::chrono::milliseconds(100), [this] { return !msgQueue.empty(); })) {
+        return Msg();
+    }
 
     Msg msg = std::move(msgQueue.front());
     msgQueue.pop();

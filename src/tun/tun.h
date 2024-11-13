@@ -5,6 +5,8 @@
 #include "core/message.h"
 #include "core/net.h"
 #include <any>
+#include <list>
+#include <shared_mutex>
 #include <string>
 
 namespace Candy {
@@ -46,7 +48,11 @@ private:
     int read(std::string &buffer);
     int write(const std::string &buffer);
 
+    int setSysRtTable(const SysRouteEntry &entry);
     int setSysRtTable(IP4 dst, IP4 mask, IP4 nexthop);
+
+    std::shared_mutex sysRtMutex;
+    std::list<SysRouteEntry> sysRtTable;
 
 private:
     std::any impl;

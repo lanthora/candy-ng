@@ -67,6 +67,12 @@ struct __attribute__((packed)) IP4Header {
     bool isIPIP();
 };
 
+struct __attribute__((packed)) SysRouteEntry {
+    IP4 dst;
+    IP4 mask;
+    IP4 nexthop;
+};
+
 /* 用于表示地址和掩码的组合,用于判断主机是否属于某个网络 */
 class Address {
 public:

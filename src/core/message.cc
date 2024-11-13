@@ -4,8 +4,9 @@
 
 namespace Candy {
 
-Msg::Msg(MsgKind kind) {
+Msg::Msg(MsgKind kind, std::string data) {
     this->kind = kind;
+    this->data = std::move(data);
 }
 
 Msg::Msg(Msg &&packet) {

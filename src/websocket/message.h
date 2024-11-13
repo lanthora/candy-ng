@@ -84,17 +84,11 @@ struct __attribute__((packed)) Discovery {
     Discovery();
 };
 
-struct __attribute__((packed)) SysRouteItem {
-    IP4 dst;
-    IP4 mask;
-    IP4 nexthop;
-};
-
 struct __attribute__((packed)) SysRoute {
     uint8 type;
     uint8 size;
     uint16 reserved;
-    SysRouteItem rtTable[0];
+    SysRouteEntry rtTable[0];
 };
 
 struct __attribute__((packed)) General {
