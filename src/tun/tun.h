@@ -36,7 +36,6 @@ private:
     void handlePacket(Msg msg);
     void handleTunAddr(Msg msg);
 
-    bool running;
     std::string tunAddress;
     std::thread tunThread;
     std::thread msgThread;

@@ -26,7 +26,6 @@ private:
     void handleWsQueue();
     void handlePacket(Msg msg);
 
-    bool running;
     std::thread msgThread;
 
 private:

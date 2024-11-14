@@ -32,9 +32,8 @@ int Peer::setLocalhost(std::string ip) {
 
 int Peer::run(Client *client) {
     this->client = client;
-    this->running = true;
     this->msgThread = std::thread([&] {
-        while (this->running) {
+        while (this->client->running) {
             handlePeerQueue();
         }
     });
@@ -42,7 +41,6 @@ int Peer::run(Client *client) {
 }
 
 int Peer::shutdown() {
-    this->running = false;
     if (this->msgThread.joinable()) {
         this->msgThread.join();
     }
@@ -52,7 +50,7 @@ int Peer::shutdown() {
 void Peer::handlePeerQueue() {
     Msg msg = this->client->tunMsgQueue.read();
     switch (msg.kind) {
-    case MsgKind::NONE:
+    case MsgKind::TIMEOUT:
         break;
     case MsgKind::PACKET:
         handlePacket(std::move(msg));

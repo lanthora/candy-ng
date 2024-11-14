@@ -1,11 +1,12 @@
 #include "core/client.h"
 #include "core/message.h"
+#include <chrono>
 
 namespace Candy {
 
 Msg MsgQueue::read() {
     std::unique_lock lock(msgMutex);
-    if (!msgCondition.wait_for(lock, std::chrono::milliseconds(100), [this] { return !msgQueue.empty(); })) {
+    if (!msgCondition.wait_for(lock, std::chrono::seconds(1), [this] { return !msgQueue.empty(); })) {
         return Msg();
     }
 
@@ -78,6 +79,7 @@ std::string Client::tunAddress() {
 };
 
 int Client::run() {
+    this->running = true;
     ws.run(this);
     tun.run(this);
     peer.run(this);
@@ -85,6 +87,7 @@ int Client::run() {
 }
 
 int Client::shutdown() {
+    this->running = false;
     ws.shutdown();
     tun.shutdown();
     peer.shutdown();

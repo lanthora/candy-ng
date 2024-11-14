@@ -27,7 +27,6 @@ private:
     void handlePeerQueue();
     void handlePacket(Msg msg);
 
-    bool running;
     std::thread msgThread;
 
 private:

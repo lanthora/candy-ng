@@ -43,9 +43,8 @@ int WebSocketClient::setVirtualMac(const std::string &vmac) {
 
 int WebSocketClient::run(Client *client) {
     this->client = client;
-    this->running = true;
     this->msgThread = std::thread([&] {
-        while (this->running) {
+        while (this->client->running) {
             handleWsQueue();
         }
     });
@@ -53,7 +52,6 @@ int WebSocketClient::run(Client *client) {
 }
 
 int WebSocketClient::shutdown() {
-    this->running = false;
     if (this->msgThread.joinable()) {
         this->msgThread.join();
     }
@@ -63,7 +61,7 @@ int WebSocketClient::shutdown() {
 void WebSocketClient::handleWsQueue() {
     Msg msg = this->client->wsMsgQueue.read();
     switch (msg.kind) {
-    case MsgKind::NONE:
+    case MsgKind::TIMEOUT:
         break;
     case MsgKind::PACKET:
         handlePacket(std::move(msg));

@@ -54,6 +54,8 @@ public:
     // 关闭客户端,阻塞,直到所有子模块退出
     int shutdown();
 
+    bool running = false;
+
 public:
     //  三个消息队列,子模块使用这些队列通信
     MsgQueue tunMsgQueue, peerMsgQueue, wsMsgQueue;

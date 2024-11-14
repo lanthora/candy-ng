@@ -10,9 +10,8 @@ namespace Candy {
 
 int Tun::run(Client *client) {
     this->client = client;
-    this->running = true;
     this->msgThread = std::thread([&] {
-        while (this->running) {
+        while (this->client->running) {
             handleTunQueue();
         }
     });
@@ -20,7 +19,6 @@ int Tun::run(Client *client) {
 }
 
 int Tun::shutdown() {
-    this->running = false;
     if (this->tunThread.joinable()) {
         this->tunThread.join();
     }
@@ -77,7 +75,7 @@ void Tun::handleTunDevice() {
 void Tun::handleTunQueue() {
     Msg msg = this->client->tunMsgQueue.read();
     switch (msg.kind) {
-    case MsgKind::NONE:
+    case MsgKind::TIMEOUT:
         break;
     case MsgKind::PACKET:
         handlePacket(std::move(msg));
@@ -108,7 +106,7 @@ void Tun::handleTunAddr(Msg msg) {
 
     this->tunThread = std::thread([&] {
         up();
-        while (this->running) {
+        while (this->client->running) {
             handleTunDevice();
         }
         down();

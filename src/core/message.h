@@ -10,7 +10,7 @@ namespace Candy {
 
 /* 内部模块之间通过消息通信.消息类型在这里定义 */
 enum class MsgKind {
-    NONE,    // 没有读出消息时返回 NONE
+    TIMEOUT, // 读操作超时
     PACKET,  // 模块间转发 IP 报文
     TUNADDR, // 通知 TUN 模块设置地址
 };
@@ -25,7 +25,7 @@ struct Msg {
     Msg &operator=(const Msg &) = delete;
 
     // 默认构造,移动构造和移动赋值
-    Msg(MsgKind kind = MsgKind::NONE, std::string = "");
+    Msg(MsgKind kind = MsgKind::TIMEOUT, std::string = "");
     Msg(Msg &&packet);
     Msg &operator=(Msg &&packet);
 };
