@@ -1,4 +1,6 @@
+// SPDX-License-Identifier: MIT
 #include "core/net.h"
+#include <Poco/Net/IPAddress.h>
 #include <cstring>
 #include <exception>
 
@@ -58,7 +60,7 @@ IP4 IP4::operator&(IP4 another) const {
 
 IP4 IP4::next() const {
     IP4 ip;
-    uint32 t = hton(ntoh(uint32(*this)) + 1);
+    uint32_t t = hton(ntoh(uint32_t(*this)) + 1);
     std::memcpy(&ip, &t, sizeof(ip));
     return ip;
 }
@@ -145,7 +147,7 @@ int Address::fromCidr(const std::string &cidr) {
         host.fromString(cidr.substr(0UL, pos));
         mask.fromPrefix(std::stoi(cidr.substr(pos + 1)));
     } catch (std::exception &e) {
-        spdlog::warn("address parse cidr failed: {}: {}", cidr, e.what());
+        spdlog::warn("address parse cidr failed: {}: {}", e.what(), cidr);
         return -1;
     }
     return 0;

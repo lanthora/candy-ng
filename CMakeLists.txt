@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.18.4)
 
-project(candy LANGUAGES C CXX VERSION 6.0.0)
+project(candy LANGUAGES C CXX VERSION 5.10.4)
 
 option(CANDY_NOEXE  "Don't build executable")
 option(CANDY_DEVEL  "Build development library")
@@ -91,11 +91,13 @@ if (${CANDY_STATIC_POCO})
 endif()
 
 set(CANDY_EXECUTE_NAME "candy")
+set(CANDY_LIBRARY_NAME "libcandy")
 
 add_compile_definitions(CANDY_VERSION="${PROJECT_VERSION}")
 
 include_directories(${PROJECT_SOURCE_DIR}/src)
 
+add_subdirectory(${PROJECT_SOURCE_DIR}/src/cffi)
 add_subdirectory(${PROJECT_SOURCE_DIR}/src/main)
 add_subdirectory(${PROJECT_SOURCE_DIR}/src/core)
 add_subdirectory(${PROJECT_SOURCE_DIR}/src/websocket)

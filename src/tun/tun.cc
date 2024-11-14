@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 #include "tun/tun.h"
 #include "core/client.h"
 #include "core/message.h"
@@ -83,6 +84,9 @@ void Tun::handleTunQueue() {
     case MsgKind::TUNADDR:
         handleTunAddr(std::move(msg));
         break;
+    case MsgKind::SYSRT:
+        handleSysRt(std::move(msg));
+        break;
     default:
         spdlog::warn("unexcepted tun message type: {}", static_cast<int>(msg.kind));
         break;
@@ -97,20 +101,37 @@ void Tun::handlePacket(Msg msg) {
     IP4Header *header = (IP4Header *)msg.data.data();
     if (header->protocol == 0x04) {
         msg.data.erase(0, sizeof(IP4Header));
+        header = (IP4Header *)msg.data.data();
     }
     write(msg.data);
 }
 
 void Tun::handleTunAddr(Msg msg) {
-    setAddress(msg.data);
+    if (setAddress(msg.data)) {
+        Candy::shutdown(this->client);
+    }
 
     this->tunThread = std::thread([&] {
-        up();
+        if (up()) {
+            Candy::shutdown(this->client);
+            return;
+        }
         while (this->client->running) {
             handleTunDevice();
         }
-        down();
+        if (down()) {
+            Candy::shutdown(this->client);
+            return;
+        }
     });
+}
+
+void Tun::handleSysRt(Msg msg) {
+    SysRouteEntry *rt = (SysRouteEntry *)msg.data.data();
+    if (rt->nexthop != getIP()) {
+        spdlog::info("route: {}/{} via {}", rt->dst.toString(), rt->mask.toPrefix(), rt->nexthop.toString());
+        setSysRtTable(*rt);
+    }
 }
 
 int Tun::setSysRtTable(const SysRouteEntry &entry) {

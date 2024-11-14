@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
-#ifndef CANDY_MAIN_ARGUMENTS_H
-#define CANDY_MAIN_ARGUMENTS_H
+#ifndef CANDY_MAIN_CONFIG_H
+#define CANDY_MAIN_CONFIG_H
 
 #include <map>
 #include <spdlog/spdlog.h>

@@ -2,7 +2,6 @@
 #include "core/client.h"
 #include "core/server.h"
 #include "main/config.h"
-#include "utility/random.h"
 #include "utility/time.h"
 #include <Poco/Platform.h>
 #include <Poco/String.h>
@@ -11,10 +10,9 @@
 #include <spdlog/spdlog.h>
 #include <string>
 
-using namespace Candy;
-
 std::atomic<bool> running = true;
-int exitCode = 1;
+
+namespace Candy {
 
 void shutdown(Client *client) {
     running = false;
@@ -26,12 +24,16 @@ void shutdown(Server *server) {
     running.notify_one();
 }
 
+} // namespace Candy
+
+int exitCode = 1;
+
 int serve(const arguments &args) {
 
     Poco::Net::initializeNetwork();
 
     if (args.mode == "server") {
-        Server server;
+        Candy::Server server;
         server.setPassword(args.password);
         server.setWebSocket(args.websocket);
         server.setDHCP(args.dhcp);
@@ -42,7 +44,7 @@ int serve(const arguments &args) {
     }
 
     if (args.mode == "client") {
-        Client client;
+        Candy::Client client;
         client.setDiscoveryInterval(args.discovery);
         client.setRouteCost(args.routeCost);
         client.setPort(args.udpPort);
@@ -55,6 +57,7 @@ int serve(const arguments &args) {
         client.setVirtualMac(virtualMac(args.name));
         client.setMtu(args.mtu);
         client.setName(args.name);
+        client.setTunUpdateCallback([&](auto tunCidr) { return saveTunAddress(args.name, tunCidr); });
         client.run();
         running.wait(true);
         client.shutdown();
@@ -97,5 +100,7 @@ int main(int argc, char *argv[]) {
         std::this_thread::sleep_for(std::chrono::seconds(args.restart));
     }
 
+    spdlog::drop_all();
+    spdlog::shutdown();
     return exitCode;
 }

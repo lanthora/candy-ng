@@ -15,8 +15,6 @@
 #include <sys/ioctl.h>
 #include <unistd.h>
 
-namespace Candy {
-
 namespace {
 
 class LinuxTun {
@@ -26,16 +24,16 @@ public:
         return 0;
     }
 
-    int setIP(IP4 ip) {
+    int setIP(Candy::IP4 ip) {
         this->ip = ip;
         return 0;
     }
 
-    IP4 getIP() {
+    Candy::IP4 getIP() {
         return this->ip;
     }
 
-    int setMask(IP4 mask) {
+    int setMask(Candy::IP4 mask) {
         this->mask = mask;
         return 0;
     }
@@ -176,7 +174,7 @@ public:
         return ::write(this->tunFd, buffer.c_str(), buffer.size());
     }
 
-    int setSysRtTable(IP4 dst, IP4 mask, IP4 nexthop) {
+    int setSysRtTable(Candy::IP4 dst, Candy::IP4 mask, Candy::IP4 nexthop) {
         int sockfd = socket(AF_INET, SOCK_DGRAM, 0);
         if (sockfd == -1) {
             spdlog::error("set route failed: create socket failed");
@@ -212,14 +210,16 @@ public:
 
 private:
     std::string name;
-    IP4 ip;
-    IP4 mask;
+    Candy::IP4 ip;
+    Candy::IP4 mask;
     int mtu;
     int timeout;
     int tunFd;
 };
 
 } // namespace
+
+namespace Candy {
 
 Tun::Tun() {
     this->impl = std::make_shared<LinuxTun>();

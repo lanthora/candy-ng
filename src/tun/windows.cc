@@ -2,8 +2,8 @@
 #include <Poco/Platform.h>
 #if POCO_OS == POCO_OS_WINDOWS_NT
 
+#include "core/net.h"
 #include "tun/tun.h"
-#include "utility/net.h"
 #include <codecvt>
 #include <memory>
 #include <openssl/sha.h>
@@ -28,8 +28,6 @@
 #pragma GCC diagnostic ignored "-Wunknown-pragmas"
 #include <wintun.h>
 #pragma GCC diagnostic pop
-
-namespace Candy {
 
 namespace {
 
@@ -97,12 +95,12 @@ public:
         return 0;
     }
 
-    int setIP(IP4 ip) {
+    int setIP(Candy::IP4 ip) {
         this->ip = ip;
         return 0;
     }
 
-    int getIP() {
+    Candy::IP4 getIP() {
         return this->ip;
     }
 
@@ -219,7 +217,7 @@ public:
         return -1;
     }
 
-    int setSysRtTable(IP4 dst, IP4 mask, IP4 nexthop) {
+    int setSysRtTable(Candy::IP4 dst, Candy::IP4 mask, Candy::IP4 nexthop) {
         MIB_IPFORWARDROW route;
 
         route.dwForwardDest = dst;
@@ -249,7 +247,7 @@ public:
 
 private:
     std::string name;
-    IP4 ip;
+    Candy::IP4 ip;
     uint32_t prefix;
     int mtu;
     int timeout;
@@ -261,6 +259,8 @@ private:
 };
 
 } // namespace
+
+namespace Candy {
 
 Tun::Tun() {
     this->impl = std::make_shared<WindowsTun>();

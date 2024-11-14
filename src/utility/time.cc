@@ -1,11 +1,9 @@
 // SPDX-License-Identifier: MIT
 #include "utility/time.h"
 #include "core/net.h"
-#include "utility/type.h"
 #include <Poco/Net/DatagramSocket.h>
 #include <Poco/Platform.h>
 #include <chrono>
-#include <netinet/in.h>
 #include <spdlog/fmt/bin_to_hex.h>
 #include <spdlog/spdlog.h>
 #include <string>
@@ -17,30 +15,30 @@ bool useSystemTime = false;
 std::string ntpServer;
 
 struct ntp_packet {
-    uint8 li_vn_mode = 0x23;
+    uint8_t li_vn_mode = 0x23;
 
-    uint8 stratum;
-    uint8 poll;
-    uint8 precision;
+    uint8_t stratum;
+    uint8_t poll;
+    uint8_t precision;
 
-    uint32 rootDelay;
-    uint32 rootDispersion;
-    uint32 refId;
+    uint32_t rootDelay;
+    uint32_t rootDispersion;
+    uint32_t refId;
 
-    uint32 refTm_s;
-    uint32 refTm_f;
+    uint32_t refTm_s;
+    uint32_t refTm_f;
 
-    uint32 origTm_s;
-    uint32 origTm_f;
+    uint32_t origTm_s;
+    uint32_t origTm_f;
 
-    uint32 rxTm_s;
-    uint32 rxTm_f;
+    uint32_t rxTm_s;
+    uint32_t rxTm_f;
 
-    uint32 txTm_s;
-    uint32 txTm_f;
+    uint32_t txTm_s;
+    uint32_t txTm_f;
 };
 
-int64 ntpTime() {
+int64_t ntpTime() {
     try {
         Poco::Net::DatagramSocket socket;
         socket.connect(Poco::Net::SocketAddress(ntpServer, 123));
@@ -56,7 +54,7 @@ int64 ntpTime() {
             return 0;
         }
 
-        int64 retval = (int64)(ntoh(packet.rxTm_s));
+        int64_t retval = (int64_t)(ntoh(packet.rxTm_s));
         if (retval == 0) {
             spdlog::warn("invalid ntp response buffer: {:n}", spdlog::to_hex(std::string((char *)(&packet), sizeof(packet))));
             return 0;
@@ -75,11 +73,11 @@ int64 ntpTime() {
     }
 }
 
-int64 unixTime() {
+int64_t unixTime() {
     using namespace std::chrono;
 
-    int64 sysTime;
-    int64 netTime;
+    int64_t sysTime;
+    int64_t netTime;
 
     if (useSystemTime || ntpServer.empty()) {
         sysTime = duration_cast<seconds>(system_clock::now().time_since_epoch()).count();
@@ -107,7 +105,7 @@ int64 unixTime() {
     return sysTime;
 }
 
-int64 bootTime() {
+int64_t bootTime() {
     using namespace std::chrono;
     auto now = steady_clock::now();
     return duration_cast<milliseconds>(now.time_since_epoch()).count();

@@ -35,6 +35,7 @@ private:
     void handleTunQueue();
     void handlePacket(Msg msg);
     void handleTunAddr(Msg msg);
+    void handleSysRt(Msg msg);
 
     std::string tunAddress;
     std::thread tunThread;

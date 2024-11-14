@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 #include <Poco/Platform.h>
 
 #if POCO_OS != POCO_OS_LINUX && POCO_OS != POCO_OS_MAC_OS_X && POCO_OS != POCO_OS_WINDOWS_NT

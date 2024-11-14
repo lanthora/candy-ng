@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 #include "core/server.h"
 
 namespace Candy {

@@ -3,11 +3,9 @@
 #define CANDY_CORE_NET_H
 
 #include "utility/byteswap.h"
-#include <Poco/Net/IPAddress.h>
 #include <array>
 #include <bit>
 #include <cstdint>
-#include <netinet/in.h>
 #include <spdlog/spdlog.h>
 #include <string>
 
@@ -45,19 +43,19 @@ public:
     bool empty() const;
 
 private:
-    std::array<uint8, 4> raw;
+    std::array<uint8_t, 4> raw;
 };
 
 /* IPv4 头,分装于 IPv4 相关的操作 */
 struct __attribute__((packed)) IP4Header {
-    uint8 version_ihl;
-    uint8 tos;
-    uint16 tot_len;
-    uint16 id;
-    uint16 frag_off;
-    uint8 ttl;
-    uint8 protocol;
-    uint16 check;
+    uint8_t version_ihl;
+    uint8_t tos;
+    uint16_t tot_len;
+    uint16_t id;
+    uint16_t frag_off;
+    uint8_t ttl;
+    uint8_t protocol;
+    uint16_t check;
     IP4 saddr;
     IP4 daddr;
 

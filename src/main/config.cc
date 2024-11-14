@@ -213,7 +213,7 @@ std::string loadTunAddress(const std::string &name) {
         ifs.close();
         return ss.str();
     }
-    return "";
+    return "0.0.0.0/0";
 }
 
 std::string virtualMac(const std::string &name) {

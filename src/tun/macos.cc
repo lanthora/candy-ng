@@ -2,8 +2,8 @@
 #include <Poco/Platform.h>
 #if POCO_OS == POCO_OS_MAC_OS_X
 
+#include "core/net.h"
 #include "tun/tun.h"
-#include "utility/net.h"
 #include <errno.h>
 #include <fcntl.h>
 #include <memory>
@@ -22,8 +22,6 @@
 #include <sys/uio.h>
 #include <unistd.h>
 
-namespace Candy {
-
 namespace {
 
 class MacTun {
@@ -33,16 +31,16 @@ public:
         return 0;
     }
 
-    int setIP(IP4 ip) {
+    int setIP(Candy::IP4 ip) {
         this->ip = ip;
         return 0;
     }
 
-    int getIP() {
+    Candy::IP4 getIP() {
         return this->ip;
     }
 
-    int setMask(IP4 mask) {
+    int setMask(Candy::IP4 mask) {
         this->mask = mask;
         return 0;
     }
@@ -129,7 +127,8 @@ public:
         ((struct sockaddr_in *)&areq.ifra_broadaddr)->sin_addr.s_addr = (this->ip & this->mask);
 
         if (ioctl(sockfd, SIOCAIFADDR, (void *)&areq) == -1) {
-            spdlog::critical("set ip mask failed: {}: ip {:08x} mask {:08x}", strerror(errno), this->ip, this->mask);
+            spdlog::critical("set ip mask failed: {}: ip {} mask {}", strerror(errno), this->ip.toString(),
+                             this->mask.toString());
             close(sockfd);
             return -1;
         }
@@ -206,7 +205,7 @@ public:
         return ::writev(this->tunFd, iov, sizeof(iov) / sizeof(iov[0])) - sizeof(sizeof(this->packetinfo));
     }
 
-    int setSysRtTable(IP4 dst, IP4 mask, IP4 nexthop) {
+    int setSysRtTable(Candy::IP4 dst, Candy::IP4 mask, Candy::IP4 nexthop) {
         struct {
             struct rt_msghdr msghdr;
             struct sockaddr_in addr[3];
@@ -243,16 +242,18 @@ public:
 private:
     std::string name;
     char ifname[IFNAMSIZ] = {0};
-    IP4 ip;
-    IP4 mask;
+    Candy::IP4 ip;
+    Candy::IP4 mask;
     int mtu;
     int timeout;
     int tunFd;
 
-    u8 packetinfo[4] = {0x00, 0x00, 0x00, 0x02};
+    uint8_t packetinfo[4] = {0x00, 0x00, 0x00, 0x02};
 };
 
 } // namespace
+
+namespace Candy {
 
 Tun::Tun() {
     this->impl = std::make_shared<MacTun>();

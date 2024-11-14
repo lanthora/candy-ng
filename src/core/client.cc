@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 #include "core/client.h"
 #include "core/message.h"
 #include <chrono>
@@ -7,7 +8,7 @@ namespace Candy {
 Msg MsgQueue::read() {
     std::unique_lock lock(msgMutex);
     if (!msgCondition.wait_for(lock, std::chrono::seconds(1), [this] { return !msgQueue.empty(); })) {
-        return Msg();
+        return Msg(MsgKind::TIMEOUT);
     }
 
     Msg msg = std::move(msgQueue.front());
@@ -24,7 +25,12 @@ void MsgQueue::write(Msg msg) {
 }
 
 void Client::setName(const std::string &name) {
+    this->tunName = name;
     tun.setName(name);
+}
+
+std::string Client::getName() const {
+    return this->tunName;
 }
 
 void Client::setPassword(const std::string &password) {
@@ -72,11 +78,9 @@ void Client::setMtu(int mtu) {
     tun.setMTU(mtu);
 }
 
-std::string Client::tunAddress() {
-    // TODO: 获取虚拟网卡地址
-    // 从 TUN 模块取? 还是保存 Auth 使用的地址?
-    return "";
-};
+void Client::setTunUpdateCallback(std::function<int(const std::string &)> callback) {
+    this->ws.setTunUpdateCallback(callback);
+}
 
 int Client::run() {
     this->running = true;

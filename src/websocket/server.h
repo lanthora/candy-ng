@@ -3,7 +3,6 @@
 #define CANDY_WEBSOCKET_SERVER_H
 
 #include "core/net.h"
-#include "utility/type.h"
 #include <Poco/Net/HTTPServer.h>
 #include <Poco/Net/WebSocket.h>
 #include <list>
@@ -21,6 +20,8 @@ struct WsCtx {
 
     IP4 ip;
     std::string vmac;
+
+    void sendFrame(const std::string &frame, int flags = Poco::Net::WebSocket::FRAME_BINARY);
 };
 
 struct SysRoute {
@@ -42,7 +43,7 @@ public:
 
 private:
     std::string host;
-    uint16 port;
+    uint16_t port;
     std::string password;
     Address dhcp;
     std::list<SysRoute> routes;

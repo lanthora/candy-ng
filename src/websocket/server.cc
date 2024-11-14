@@ -18,6 +18,7 @@
 #include <shared_mutex>
 #include <spdlog/fmt/bin_to_hex.h>
 #include <spdlog/spdlog.h>
+#include <sstream>
 
 /**
  * Poco 的 WebSocket 服务端接口有点难用,简单封装一下,并对外提供一个回调函数,回调函数的参数表示独立的
@@ -62,6 +63,10 @@ private:
 }; // namespace
 
 namespace Candy {
+
+void WsCtx::sendFrame(const std::string &frame, int flags) {
+    this->ws->sendFrame(frame.data(), frame.size(), flags);
+}
 
 int WebSocketServer::setWebSocket(const std::string &uri) {
     try {
@@ -218,7 +223,7 @@ void WebSocketServer::handleForwardMsg(WsCtx &ctx) {
         std::shared_lock lock(this->ipCtxMutex);
         auto it = this->ipCtxMap.find(header->iph.daddr);
         if (it != this->ipCtxMap.end()) {
-            it->second->ws->sendFrame(ctx.buffer.data(), ctx.buffer.size());
+            it->second->sendFrame(ctx.buffer);
             return;
         }
     }
@@ -251,7 +256,7 @@ void WebSocketServer::handleForwardMsg(WsCtx &ctx) {
         std::shared_lock lock(this->ipCtxMutex);
         for (auto c : this->ipCtxMap) {
             if (c.second->ip != ctx.ip) {
-                c.second->ws->sendFrame(ctx.buffer.data(), ctx.buffer.size());
+                c.second->sendFrame(ctx.buffer);
             }
         }
         return;
@@ -312,7 +317,7 @@ void WebSocketServer::handleExptTunMsg(WsCtx &ctx) {
     header->timestamp = hton(unixTime());
     std::strcpy(header->cidr, exptTun.toCidr().c_str());
     header->updateHash(this->password);
-    ctx.ws->sendFrame(ctx.buffer.data(), ctx.buffer.size());
+    ctx.sendFrame(ctx.buffer.data());
 }
 
 void WebSocketServer::handleUdp4ConnMsg(WsCtx &ctx) {
@@ -340,13 +345,14 @@ void WebSocketServer::handleUdp4ConnMsg(WsCtx &ctx) {
         spdlog::debug("peer dest address not logged in: source {} dst {}", header->src.toString(), header->dst.toString());
         return;
     }
-    it->second->ws->sendFrame(ctx.buffer.data(), ctx.buffer.size());
+    it->second->sendFrame(ctx.buffer);
     return;
 }
 
 void WebSocketServer::handleVMacMsg(WsCtx &ctx) {
     if (ctx.buffer.length() < sizeof(WsMsg::VMac)) {
         spdlog::warn("invalid vmac message: len {}", ctx.buffer.length());
+        ctx.status = -1;
         return;
     }
 
@@ -385,14 +391,14 @@ void WebSocketServer::handleDiscoveryMsg(WsCtx &ctx) {
     if (header->dst == IP4("255.255.255.255")) {
         for (auto c : this->ipCtxMap) {
             if (c.first != header->src) {
-                c.second->ws->sendFrame(ctx.buffer.data(), ctx.buffer.size());
+                c.second->sendFrame(ctx.buffer);
             }
         }
         return;
     }
     auto it = this->ipCtxMap.find(header->dst);
     if (it != this->ipCtxMap.end()) {
-        it->second->ws->sendFrame(ctx.buffer.data(), ctx.buffer.size());
+        it->second->sendFrame(ctx.buffer);
         return;
     }
 }
@@ -400,11 +406,13 @@ void WebSocketServer::handleDiscoveryMsg(WsCtx &ctx) {
 void WebSocketServer::HandleGeneralMsg(WsCtx &ctx) {
     if (ctx.ip.empty()) {
         spdlog::debug("unauthorized general websocket client");
+        ctx.status = -1;
         return;
     }
 
     if (ctx.buffer.length() < sizeof(WsMsg::General)) {
         spdlog::debug("invalid general message: len {}", ctx.buffer.length());
+        ctx.status = -1;
         return;
     }
 
@@ -420,14 +428,14 @@ void WebSocketServer::HandleGeneralMsg(WsCtx &ctx) {
     if (header->dst == IP4("255.255.255.255")) {
         for (auto c : this->ipCtxMap) {
             if (c.first != header->src) {
-                c.second->ws->sendFrame(ctx.buffer.data(), ctx.buffer.size());
+                c.second->sendFrame(ctx.buffer);
             }
         }
         return;
     }
     auto it = this->ipCtxMap.find(header->dst);
     if (it != this->ipCtxMap.end()) {
-        it->second->ws->sendFrame(ctx.buffer.data(), ctx.buffer.size());
+        it->second->sendFrame(ctx.buffer);
         return;
     }
 }
@@ -449,14 +457,14 @@ void WebSocketServer::updateSysRoute(WsCtx &ctx) {
         }
         // 100 条路由报文大小是 1204 字节,超过 100 条后分批发送
         if (header->size > 100) {
-            ctx.ws->sendFrame(ctx.buffer.data(), ctx.buffer.size());
+            ctx.sendFrame(ctx.buffer);
             ctx.buffer.resize(sizeof(WsMsg::SysRoute));
             header->size = 0;
         }
     }
 
     if (header->size > 0) {
-        ctx.ws->sendFrame(ctx.buffer.data(), ctx.buffer.size());
+        ctx.sendFrame(ctx.buffer);
     }
 }
 

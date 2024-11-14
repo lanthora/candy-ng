@@ -1,0 +1,86 @@
+name: check
+
+on:
+  push:
+    branches: [master]
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+      - name: check format
+        uses: jidicula/clang-format-action@v4.11.0
+        with:
+          check-path: "src"
+          exclude-regex: "src/utility/argparse.h"
+
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+      - name: build
+        run: docker build .
+
+  macos:
+    runs-on: macos-13
+    steps:
+      - name: depends
+        run: brew install spdlog poco
+      - name: checkout
+        uses: actions/checkout@v4
+      - name: build
+        run: |
+          export CPATH=/usr/local/include
+          export LIBRARY_PATH=/usr/local/lib
+          cmake -B build -DCMAKE_BUILD_TYPE=Release && cmake --build build
+
+  windows:
+    runs-on: windows-latest
+    steps:
+      - name: depends
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: true
+          install: >-
+            mingw-w64-x86_64-cmake
+            mingw-w64-x86_64-ninja
+            mingw-w64-x86_64-gcc
+            mingw-w64-x86_64-spdlog
+            mingw-w64-x86_64-poco
+      - name: checkout
+        uses: actions/checkout@v4
+      - name: cache
+        uses: actions/cache@v4
+        with:
+          path: build
+          key: ${{ hashFiles('CMakeLists.txt') }}
+      - name: build
+        shell: msys2 {0}
+        run: cmake -B build -DCMAKE_BUILD_TYPE=Release && cmake --build build
+
+  linux:
+    strategy:
+      fail-fast: false
+      matrix:
+        image:
+          - "debian:12"
+          - "ubuntu:22.04"
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+      - name: create ${{ matrix.image }} directory
+        run: |
+          mkdir debian
+          cp -r package/debian/* debian
+          cp README.md debian/candy-docs.docs
+          cp LICENSE debian/copyright
+          git fetch --tags origin
+      - name: setup artifact name
+        run: |
+          IMAGE_NAME=${{ matrix.image }}
+          echo "ARTIFACT_NAME=${IMAGE_NAME//:/}" >> $GITHUB_ENV

@@ -13,6 +13,7 @@ enum class MsgKind {
     TIMEOUT, // 读操作超时
     PACKET,  // 模块间转发 IP 报文
     TUNADDR, // 通知 TUN 模块设置地址
+    SYSRT,   // 设置系统路由
 };
 
 /* 内部模块间的消息只包含类型和可选的数据,模块之间传输信息只允许移动,不允许复制 */

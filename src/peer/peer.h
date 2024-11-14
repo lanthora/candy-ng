@@ -3,8 +3,12 @@
 #define CANDY_PEER_PEER_H
 
 #include "core/message.h"
+#include "core/net.h"
+#include "peer/info.h"
+#include <shared_mutex>
 #include <string>
 #include <thread>
+#include <unordered_map>
 
 namespace Candy {
 
@@ -17,7 +21,7 @@ public:
     int setDiscoveryInterval(int interval);
     int setForwardCost(int cost);
     int setPort(int port);
-    int setLocalhost(std::string ip);
+    int setLocalhost(const std::string &ip);
 
     int run(Client *client);
     int shutdown();
@@ -28,6 +32,13 @@ private:
     void handlePacket(Msg msg);
 
     std::thread msgThread;
+
+    // 处理 PACKET 报文,并判断目标是否可达
+    int sendTo(IP4 dst, const Msg &msg);
+
+private:
+    std::shared_mutex ipPeerMutex;
+    std::unordered_map<IP4, PeerInfo> ipPeerMap;
 
 private:
     Client *client;

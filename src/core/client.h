@@ -11,6 +11,8 @@
 
 namespace Candy {
 
+void shutdown(Client *client);
+
 /* 各模块之间通过消息队列通信 */
 class MsgQueue {
 public:
@@ -39,6 +41,7 @@ public:
     void setPort(int port);
     void setLocalhost(std::string ip);
     void setMtu(int mtu);
+    void setTunUpdateCallback(std::function<int(const std::string &)> callback);
 
     // 期望使用的地址,当地址可用时服务端优先分配这个地址
     void setExptTunAddress(const std::string &cidr);
@@ -46,15 +49,14 @@ public:
     // 当相同虚拟硬件地址的设备登录时,判定为前一个客户端已断开,踢出前一个客户端并分配为与前一个客户端相同的 IP
     void setVirtualMac(const std::string &vmac);
 
-    // 获取手动设置或服务端分配的虚拟地址,可以保存下来用于下次启动时设置期望的地址
-    std::string tunAddress();
-
     // 启动客户端,非阻塞
     int run();
     // 关闭客户端,阻塞,直到所有子模块退出
     int shutdown();
 
     bool running = false;
+
+    std::string getName() const;
 
 public:
     //  三个消息队列,子模块使用这些队列通信
@@ -67,6 +69,9 @@ private:
     Peer peer;
     // WS 模块,主要处理与服务端之间的控制信息,在 P2P 无法使用时提供服务端中继
     WebSocketClient ws;
+
+private:
+    std::string tunName;
 };
 
 } // namespace Candy
